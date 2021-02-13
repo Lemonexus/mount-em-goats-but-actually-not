@@ -106,3 +106,50 @@ img`
 ]
 scene.setBackgroundColor(9)
 tiles.setTilemap(tilemap`level`)
+
+let baseGoat = sprites.create(goatImgs[randint(0, goatImgs.length - 1)], SpriteKind.StackGoat)
+baseGoat.setPosition(80, 565)
+baseGoat.ay = 300
+scene.cameraFollowSprite(baseGoat)
+
+let topGoat = baseGoat
+let newGoat: Sprite = null
+game.onUpdateInterval(500, function() {
+    if (game.runtime() > 1000 && game.runtime() < 1500){
+        createNewGoat()
+    }
+})
+
+function createNewGoat(){
+    newGoat = sprites.create(goatImgs[randint(0, goatImgs.length - 1)], SpriteKind.Goat)
+    newGoat.setPosition(randint(20, 140), baseGoat.y - 40)
+    if (Math.percentChance(50)){
+        newGoat.vx = randint(100, 200)
+    }
+
+    else{
+        newGoat.vx = randint(-200, -100)
+    }
+    newGoat.vx = 50
+    newGoat.setFlag(SpriteFlag.BounceOnWall, true)
+}
+
+controller.A.onEvent(ControllerButtonEvent.Pressed, function() {
+    newGoat.vx = 0
+    newGoat.ay = 300
+})
+
+sprites.onOverlap(SpriteKind.Goat, SpriteKind.StackGoat, function(theDroppedGoat: Sprite, theStackGoat: Sprite) {
+    theDroppedGoat.vy = 0
+    theDroppedGoat.ay = 0
+    theDroppedGoat.setKind(SpriteKind.StackGoat)
+    topGoat = theDroppedGoat
+    createNewGoat()
+})
+
+scene.onHitWall(SpriteKind.Goat, function(sprite: Sprite, location: tiles.Location) {
+    if (sprite.isHittingTile(CollisionDirection.Bottom)){
+        sprite.destroy(effects.disintegrate, 100)
+        createNewGoat()
+    }
+})
